@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/include/**"
+            ],
+            "defines": [
+                "CC=arm-linux-gnueabihf-gcc"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64",
+            "compilerArgs": [
+                "-Wall -lrf24"
+            ]
+        }
+    ],
+    "version": 4
+}
