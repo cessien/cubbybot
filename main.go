@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -12,6 +12,11 @@ import (
 	rf24 "github.com/cessien/gorf24"
 	//"github.com/cessien/cubbybot/gui"
 )
+
+type Message struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
 
 const CE_PIN uint16 = 22     // RPi GPIO 22
 const CS_PIN uint16 = 8      // RPi CE0 CSN, GPIO 08
@@ -73,9 +78,12 @@ func main() {
 			// take the time, and send it. will block until complete
 
 			fmt.Println("Now sending...")
-			var t int64 = time.Now().UnixNano()
-			b := make([]byte, 8)
-			binary.LittleEndian.PutUint64(b, uint64(t))
+			m := Message{
+				Type: "test",
+				Data: fmt.Sprintf("Pi time: %d", time.Now().Unix()),
+			}
+
+			b, _ := json.Marshal(m)
 
 			ok := radio.Write(b, 8)
 
@@ -100,11 +108,15 @@ func main() {
 				fmt.Println("Failed, response timed out")
 			} else {
 				// grab the response, compare, and send to debugging spew
-				var gotTime []byte
-				gotTime = radio.Read(8)
+				var data []byte = radio.Read(255)
+				m := Message{}
+				err = json.Unmarshal(data, &m)
+				if err != nil {
+					fmt.Printf("Error parsing message: %v\n", err)
+				}
 
 				// spew it
-				fmt.Printf("Got response(%d), round-trip delay: %dms\n", len(gotTime), int64(binary.BigEndian.Uint64(gotTime))*time.Hour.Milliseconds())
+				fmt.Printf("Got response[%s]: %s\n", m.Type, m.Data)
 			}
 			time.Sleep(1 * time.Second)
 		}
@@ -116,21 +128,24 @@ func main() {
 			// if there is data ready
 			if radio.Available() {
 				// dump the payloads until we've gotten everything
-				var gotTime []byte
-
-				// fetch the payload, and see if this was the last one
-				for radio.Available() {
-					gotTime = radio.Read(8) // Expecting 64 bits
+				var data []byte = radio.Read(255)
+				m := Message{}
+				err = json.Unmarshal(data, &m)
+				if err != nil {
+					fmt.Printf("Error parsing message: %v\n", err)
 				}
 				radio.StopListening()
 
-				radio.Write(gotTime, 8)
+				m.Data = "Heck yeah!"
+				b, _ := json.Marshal(m)
+
+				radio.Write(b, 255)
 
 				// now, resume listening so we can catch the next packets
 				radio.StartListening()
 
 				// spew it
-				fmt.Printf("Got payload(%d) %d\n", len(gotTime), int64(binary.BigEndian.Uint64(gotTime)))
+				fmt.Printf("Got payload[%s] %s\n", m.Type, m.Data)
 
 				time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 			}
