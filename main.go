@@ -18,9 +18,9 @@ type Message struct {
 	Data interface{} `json:"data"`
 }
 
-const CE_PIN uint16 = 22     // RPi GPIO 22
-const CS_PIN uint16 = 8      // RPi CE0 CSN, GPIO 08
-const SPI_SPEED_HZ = 8000000 // 8Mhz
+const CE_PIN uint16 = 22       // RPi GPIO 22
+const CS_PIN uint16 = 8        // RPi CE0 CSN, GPIO 08
+const SPI_SPEED_HZ = 125000000 // 125Mhz
 
 func main() {
 	//gui.InitializeHome()
@@ -98,7 +98,7 @@ func main() {
 			startedWaitingAt := time.Now()
 			var timeout bool = false
 			for !radio.Available() && !timeout {
-				if time.Now().Sub(startedWaitingAt) > 200*time.Millisecond {
+				if time.Now().Sub(startedWaitingAt) > 300*time.Millisecond {
 					timeout = true
 				}
 			}
