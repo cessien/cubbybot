@@ -106,7 +106,7 @@ func main() {
 				// spew it
 				fmt.Printf("Got response(%d), round-trip delay: %d\n", len(gotTime), binary.BigEndian.Uint64(gotTime))
 			}
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(1 * time.Second)
 		}
 
 		/*
@@ -130,7 +130,7 @@ func main() {
 				radio.StartListening()
 
 				// spew it
-				fmt.Printf("Got payload(%d) %d\n", len(gotTime), binary.BigEndian.Uint64(gotTime))
+				fmt.Printf("Got payload(%d) %d\n", len(gotTime), int64(binary.BigEndian.Uint64(gotTime)))
 
 				time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 			}
