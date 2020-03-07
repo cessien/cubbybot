@@ -104,7 +104,7 @@ func main() {
 				gotTime = radio.Read(8)
 
 				// spew it
-				fmt.Printf("Got response(%d), round-trip delay: %d\n", len(gotTime), binary.BigEndian.Uint64(gotTime))
+				fmt.Printf("Got response(%d), round-trip delay: %dms\n", len(gotTime), int64(binary.BigEndian.Uint64(gotTime))*time.Hour.Milliseconds())
 			}
 			time.Sleep(1 * time.Second)
 		}
