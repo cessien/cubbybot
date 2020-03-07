@@ -135,12 +135,5 @@ func main() {
 			}
 
 		}
-		// if radio.Available() {
-		// 	data := radio.Read(4)
-		// 	fmt.Printf("data: %v\n", data)
-
-		// 	payload := binary.LittleEndian.Uint32(data)
-		// 	fmt.Printf("Received %v\n", payload)
-		// }
 	}
 }
