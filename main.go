@@ -71,12 +71,13 @@ func main() {
 			radio.StopListening()
 
 			// take the time, and send it. will block until complete
-			fmt.Printf("Now sending...\n")
+
+			fmt.Println("Now sending...")
 			var t int64 = time.Now().UnixNano()
 			b := make([]byte, 8)
 			binary.LittleEndian.PutUint64(b, uint64(t))
 
-			ok := radio.Write(b, uint8(len(b)))
+			ok := radio.Write(b, 8)
 
 			if !ok {
 				fmt.Println("failed.")
@@ -100,12 +101,12 @@ func main() {
 			} else {
 				// grab the response, compare, and send to debugging spew
 				var gotTime []byte
-				gotTime = radio.Read(0x40)
+				gotTime = radio.Read(8)
 
 				// spew it
-				fmt.Printf("Got payload(%d) %d\n", len(gotTime), binary.BigEndian.Uint64(gotTime))
+				fmt.Printf("Got response(%d), round-trip delay: %d\n", len(gotTime), binary.BigEndian.Uint64(gotTime))
 			}
-
+			time.Sleep(1 * time.Millisecond)
 		}
 
 		/*
@@ -119,11 +120,11 @@ func main() {
 
 				// fetch the payload, and see if this was the last one
 				for radio.Available() {
-					gotTime = radio.Read(0x40) // Expecting 64 bits
+					gotTime = radio.Read(8) // Expecting 64 bits
 				}
 				radio.StopListening()
 
-				radio.Write(gotTime, 0x40)
+				radio.Write(gotTime, 8)
 
 				// now, resume listening so we can catch the next packets
 				radio.StartListening()
