@@ -13,8 +13,8 @@ import (
 	//"github.com/cessien/cubbybot/gui"
 )
 
-const CE_PIN uint16 = 15     // RPi GPIO 22
-const CS_PIN uint16 = 24     // RPi CE0 CSN
+const CE_PIN uint16 = 22     // RPi GPIO 22
+const CS_PIN uint16 = 8      // RPi CE0 CSN, GPIO 08
 const SPI_SPEED_HZ = 8000000 // 8Mhz
 
 func main() {
