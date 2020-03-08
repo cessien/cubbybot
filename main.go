@@ -85,7 +85,12 @@ func main() {
 
 			b, _ := json.Marshal(m)
 
-			ok := radio.Write(b, 8)
+			var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
+			if size > 127 {
+				panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+			}
+			radio.Write(b, size)
+			ok := radio.Write(b, size)
 
 			if !ok {
 				fmt.Println("failed.")
@@ -112,7 +117,7 @@ func main() {
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
-					fmt.Printf("Error parsing message: %v\n", err)
+					fmt.Printf("Error parsing response[%x]: %v\n", data, err)
 				}
 
 				// spew it
@@ -132,14 +137,18 @@ func main() {
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
-					fmt.Printf("Error parsing message: %v\n", err)
+					fmt.Printf("Error parsing recieved [%x]: %v\n", data, err)
 				}
 				radio.StopListening()
 
 				m.Data = "Heck yeah!"
 				b, _ := json.Marshal(m)
 
-				radio.Write(b, 127)
+				var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
+				if size > 127 {
+					panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+				}
+				radio.Write(b, size)
 
 				// now, resume listening so we can catch the next packets
 				radio.StartListening()
