@@ -81,7 +81,7 @@ func main() {
 			fmt.Println("Now sending...")
 			m := Message{
 				Type: "test",
-				Data: fmt.Sprintf("Pi time: %d", time.Now().Unix()),
+				Data: fmt.Sprintf("Pi time: %d.", time.Now().Unix()),
 			}
 
 			b, _ := json.Marshal(m)
@@ -100,7 +100,7 @@ func main() {
 			// now, continue listening
 			radio.StartListening()
 
-			// wait here until we get a response, or timeout (250ms)
+			// wait here until we get a response, or timeout (300ms)
 			startedWaitingAt := time.Now()
 			var timeout bool = false
 			for !radio.Available() && !timeout {
@@ -115,7 +115,7 @@ func main() {
 			} else {
 				// grab the response, compare, and send to debugging spew
 				var data []byte = radio.Read(127)
-				data = bytes.Trim(data, "\x00")
+				//data = bytes.Trim(data, "\x00")
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
@@ -140,7 +140,7 @@ func main() {
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
-					fmt.Printf("Error parsing recieved [%x]: %v\n", data, err)
+					fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
 				}
 				radio.StopListening()
 
