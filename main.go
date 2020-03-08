@@ -108,7 +108,7 @@ func main() {
 				fmt.Println("Failed, response timed out")
 			} else {
 				// grab the response, compare, and send to debugging spew
-				var data []byte = radio.Read(255)
+				var data []byte = radio.Read(127)
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
@@ -128,7 +128,7 @@ func main() {
 			// if there is data ready
 			if radio.Available() {
 				// dump the payloads until we've gotten everything
-				var data []byte = radio.Read(255)
+				var data []byte = radio.Read(127)
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
@@ -139,7 +139,7 @@ func main() {
 				m.Data = "Heck yeah!"
 				b, _ := json.Marshal(m)
 
-				radio.Write(b, 255)
+				radio.Write(b, 127)
 
 				// now, resume listening so we can catch the next packets
 				radio.StartListening()
