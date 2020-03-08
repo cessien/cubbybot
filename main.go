@@ -90,7 +90,7 @@ func main() {
 			if size > 127 {
 				panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
 			}
-			fmt.Printf("The message sending is [%x]: %s\n", b, string(b))
+			fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
 			radio.Write(b, size)
 			ok := radio.Write(b, size)
 
