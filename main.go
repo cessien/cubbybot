@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -114,6 +115,7 @@ func main() {
 			} else {
 				// grab the response, compare, and send to debugging spew
 				var data []byte = radio.Read(127)
+				data = bytes.Trim(data, "\x00")
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
@@ -134,6 +136,7 @@ func main() {
 			if radio.Available() {
 				// dump the payloads until we've gotten everything
 				var data []byte = radio.Read(127)
+				data = bytes.Trim(data, "\x00")
 				m := Message{}
 				err = json.Unmarshal(data, &m)
 				if err != nil {
