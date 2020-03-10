@@ -18,9 +18,9 @@ type Message struct {
 	Data interface{} `json:"data"`
 }
 
-const CE_PIN uint16 = 22       // RPi GPIO 22
-const CS_PIN uint16 = 8        // RPi CE0 CSN, GPIO 08
-const SPI_SPEED_HZ = 125000000 // 125Mhz
+const CE_PIN uint16 = 22              // RPi GPIO 22
+const CS_PIN uint16 = 8               // RPi CE0 CSN, GPIO 08
+const SPI_SPEED_HZ uint32 = 125000000 // 125Mhz
 
 func main() {
 	//gui.InitializeHome()
