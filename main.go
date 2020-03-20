@@ -72,96 +72,103 @@ func main() {
 	// forever loop
 	for {
 		if role == "ping_out" {
-			// first, stop listening so we can talk
-			radio.StopListening()
-
-			// take the time, and send it. will block until complete
-
-			fmt.Println("Now sending...")
-			m := Message{
-				Type: "test",
-				Data: fmt.Sprintf("Pi time: %d.", time.Now().Unix()),
-			}
-
-			b, _ := json.Marshal(m)
-
-			var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-			if size > 127 {
-				panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
-			}
-			fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
-			radio.Write(b, size)
-			ok := radio.Write(b, size)
-
-			if !ok {
-				fmt.Println("failed.")
-			}
-
-			// now, continue listening
-			radio.StartListening()
-
-			// wait here until we get a response, or timeout (300ms)
-			startedWaitingAt := time.Now()
-			var timeout bool = false
-			for !radio.Available() && !timeout {
-				if time.Now().Sub(startedWaitingAt) > 300*time.Millisecond {
-					timeout = true
-				}
-			}
-
-			// describe the results
-			if timeout {
-				fmt.Println("Failed, response timed out")
-			} else {
-				// grab the response, compare, and send to debugging spew
-				var data []byte = radio.Read(127)
-				//data = bytes.Trim(data, "\x00")
-				m := Message{}
-				err = json.Unmarshal(data, &m)
-				if err != nil {
-					fmt.Printf("Error parsing response[%x]: %v\n", data, err)
-				}
-
-				// spew it
-				fmt.Printf("Got response[%s]: %s\n", m.Type, m.Data)
-			}
-			time.Sleep(1 * time.Second)
+			Ping(&radio)
 		}
 
 		/*
 		 * Pong back role. Receive each packet, dump it out, and send it back
 		 */
 		if role == "pong_back" {
-			// if there is data ready
-			if radio.Available() {
-				// dump the payloads until we've gotten everything
-				var data []byte = radio.Read(127)
-				//data = bytes.Trim(data, "\x00")
-				m := Message{}
-				err = json.Unmarshal(data, &m)
-				if err != nil {
-					fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
-				}
-				radio.StopListening()
-
-				m.Data = "Heck yeah!"
-				b, _ := json.Marshal(m)
-
-				var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-				if size > 127 {
-					panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
-				}
-				radio.Write(b, size)
-
-				// now, resume listening so we can catch the next packets
-				radio.StartListening()
-
-				// spew it
-				fmt.Printf("Got payload[%s] %s\n", m.Type, m.Data)
-
-				time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
-			}
-
+			Pong(&radio)
 		}
+	}
+}
+
+func Ping(radio *rf24.R) {
+	// first, stop listening so we can talk
+	radio.StopListening()
+
+	// take the time, and send it. will block until complete
+
+	fmt.Println("Now sending...")
+	m := Message{
+		Type: "test",
+		Data: fmt.Sprintf("Pi time: %d.", time.Now().Unix()),
+	}
+
+	b, _ := json.Marshal(m)
+
+	var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
+	if size > 127 {
+		panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+	}
+	fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
+	radio.Write(b, size)
+	ok := radio.Write(b, size)
+
+	if !ok {
+		fmt.Println("failed.")
+	}
+
+	// now, continue listening
+	radio.StartListening()
+
+	// wait here until we get a response, or timeout (300ms)
+	startedWaitingAt := time.Now()
+	var timeout bool = false
+	for !radio.Available() && !timeout {
+		if time.Now().Sub(startedWaitingAt) > 300*time.Millisecond {
+			timeout = true
+		}
+	}
+
+	// describe the results
+	if timeout {
+		fmt.Println("Failed, response timed out")
+	} else {
+		// grab the response, compare, and send to debugging spew
+		var data []byte = radio.Read(127)
+		//data = bytes.Trim(data, "\x00")
+		m := Message{}
+		err := json.Unmarshal(data, &m)
+		if err != nil {
+			fmt.Printf("Error parsing response[%x]: %v\n", data, err)
+		}
+
+		// spew it
+		fmt.Printf("Got response[%s]: %s\n", m.Type, m.Data)
+	}
+	time.Sleep(1 * time.Second)
+}
+
+func Pong(radio *rf24.R) {
+	// if there is data ready
+	if radio.Available() {
+		// dump the payloads until we've gotten everything
+		var data []byte = radio.Read(127)
+		//data = bytes.Trim(data, "\x00")
+		m := Message{}
+		err := json.Unmarshal(data, &m)
+		if err != nil {
+			fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
+		}
+		radio.StopListening()
+
+		m.Data = "Heck yeah!"
+		b, _ := json.Marshal(m)
+
+		var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
+		if size > 127 {
+			panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+		}
+		radio.Write(b, size)
+
+		// now, resume listening so we can catch the next packets
+		radio.StartListening()
+
+		// spew it
+		fmt.Printf("Got payload[%s] %s\n", m.Type, m.Data)
+
+		time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 	}
 }
