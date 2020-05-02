@@ -126,7 +126,6 @@ func Ping(radio *rf24.R) {
 
 	var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
 	fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
-	radio.Write(b, size)
 	ok := radio.Write(b, size)
 
 	if !ok {
@@ -161,7 +160,7 @@ func Ping(radio *rf24.R) {
 		// spew it
 		fmt.Printf("Got response[%s]: %s\n", m.Type, m.Data)
 	}
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Millisecond)
 }
 
 func Pong(radio *rf24.R) {
@@ -189,5 +188,5 @@ func Pong(radio *rf24.R) {
 		fmt.Printf("Got payload[%s] %s\n", m.Type, m.Data)
 	}
 
-	time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
+	time.Sleep(5 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 }
