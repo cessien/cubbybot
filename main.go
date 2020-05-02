@@ -20,15 +20,14 @@ type Message struct {
 
 func (m *Message) Encode() []byte {
 	e := make([]byte, 0, 64)
-	fmt.Println(string(e))
 	e = append(e, []byte(m.Type)...)
-	fmt.Println(string(e))
 	e = append(e, byte('|'))
-	fmt.Println(string(e))
 	e = append(e, []byte(m.Data)...)
-	fmt.Println(string(e))
-	e[len(e)-1] = '|'
-	fmt.Println(string(e))
+	if len(e) < 64 {
+		e = append(e, byte('|'))
+	} else {
+		e[63] = '|'
+	}
 
 	return e
 }
@@ -177,7 +176,7 @@ func Pong(radio *rf24.R) {
 		}
 		radio.StopListening()
 
-		m.Data = "Heck yeah!"
+		m.Data = fmt.Sprintf("Ack: %s", m.Data)
 		b := m.Encode()
 
 		var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
