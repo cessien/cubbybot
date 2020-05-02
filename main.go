@@ -22,7 +22,7 @@ func (m *Message) Encode() []byte {
 	e := make([]byte, 64)
 	e = append(e, []byte(m.Type)...)
 	e = append(e, byte('|'))
-	e = append(e, []byte(m.Data)...)
+	e = append(e, []byte(m.Data[:(64-len(e))])...)
 	e[len(e)] = '|'
 
 	return e[:64]
