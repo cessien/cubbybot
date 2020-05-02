@@ -19,13 +19,18 @@ type Message struct {
 }
 
 func (m *Message) Encode() []byte {
-	e := make([]byte, 64)
+	e := make([]byte, 0, 64)
+	fmt.Println(string(e))
 	e = append(e, []byte(m.Type)...)
+	fmt.Println(string(e))
 	e = append(e, byte('|'))
-	e = append(e, []byte(m.Data[:(64-len(e))])...)
-	e[len(e)] = '|'
+	fmt.Println(string(e))
+	e = append(e, []byte(m.Data)...)
+	fmt.Println(string(e))
+	e[len(e)-1] = '|'
+	fmt.Println(string(e))
 
-	return e[:64]
+	return e
 }
 
 func (m *Message) Decode(b []byte) error {
@@ -121,9 +126,6 @@ func Ping(radio *rf24.R) {
 	b := m.Encode()
 
 	var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-	if size >= 64 {
-		panic(fmt.Errorf("%x is longer than 64 bytes (%d). Cannot send", b, size))
-	}
 	fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
 	radio.Write(b, size)
 	ok := radio.Write(b, size)
@@ -179,10 +181,7 @@ func Pong(radio *rf24.R) {
 		b := m.Encode()
 
 		var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-		if size > 64 {
-			panic(fmt.Errorf("%x is longer than 64 bytes (%d). Cannot send", b, size))
-		}
-		radio.Write(b, 64)
+		radio.Write(b, size)
 
 		// now, resume listening so we can catch the next packets
 		radio.StartListening()
