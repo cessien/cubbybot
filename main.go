@@ -101,8 +101,8 @@ func Ping(radio *rf24.R) {
 	b, _ := json.Marshal(m)
 
 	var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-	if size > 127 {
-		panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+	if size >= 64 {
+		panic(fmt.Errorf("%x is longer than 64 bytes (%d). Cannot send", b, size))
 	}
 	fmt.Printf("The message sending (size %d) is [%x]: %s\n", size, b, string(b))
 	radio.Write(b, size)
@@ -129,7 +129,7 @@ func Ping(radio *rf24.R) {
 		fmt.Println("Failed, response timed out")
 	} else {
 		// grab the response, compare, and send to debugging spew
-		var data []byte = radio.Read(127)
+		var data []byte = radio.Read(64)
 		//data = bytes.Trim(data, "\x00")
 		m := Message{}
 		err := json.Unmarshal(data, &m)
@@ -147,7 +147,7 @@ func Pong(radio *rf24.R) {
 	// if there is data ready
 	if radio.Available() {
 		// dump the payloads until we've gotten everything
-		var data []byte = radio.Read(127)
+		var data []byte = radio.Read(64)
 		m := Message{}
 		finalBracket := bytes.LastIndex(data, []byte("\x7d"))
 		if finalBracket < 0 {
@@ -166,10 +166,10 @@ func Pong(radio *rf24.R) {
 		b, _ := json.Marshal(m)
 
 		var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
-		if size > 127 {
-			panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
+		if size > 64 {
+			panic(fmt.Errorf("%x is longer than 64 bytes (%d). Cannot send", b, size))
 		}
-		radio.Write(b, 127)
+		radio.Write(b, 64)
 
 		// now, resume listening so we can catch the next packets
 		radio.StartListening()
