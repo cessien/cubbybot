@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -15,8 +14,29 @@ import (
 )
 
 type Message struct {
-	Type string      `json:"type"`
-	Data interface{} `json:"data"`
+	Type string `json:"t"`
+	Data string `json:"d"`
+}
+
+func (m *Message) Encode() []byte {
+	e := make([]byte, 64)
+	e = append(e, []byte(m.Type)...)
+	e = append(e, byte('|'))
+	e = append(e, []byte(m.Data)...)
+	e[len(e)] = '|'
+
+	return e[:64]
+}
+
+func (m *Message) Decode(b []byte) error {
+	items := bytes.Split(b, []byte("|"))
+	if len(items) < 2 {
+		return fmt.Errorf("Could not parse %x", b)
+	}
+	m.Type = string(items[0])
+	m.Data = string(items[1])
+
+	return nil
 }
 
 const CE_PIN uint16 = 22      // RPi GPIO 22
@@ -94,11 +114,11 @@ func Ping(radio *rf24.R) {
 
 	fmt.Println("Now sending...")
 	m := Message{
-		Type: "test",
-		Data: fmt.Sprintf("Pi time: %d.", time.Now().Unix()),
+		Type: "t",
+		Data: fmt.Sprintf("%4d", time.Now().Unix()),
 	}
 
-	b, _ := json.Marshal(m)
+	b := m.Encode()
 
 	var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
 	if size >= 64 {
@@ -132,7 +152,7 @@ func Ping(radio *rf24.R) {
 		var data []byte = radio.Read(64)
 		//data = bytes.Trim(data, "\x00")
 		m := Message{}
-		err := json.Unmarshal(data, &m)
+		err := m.Decode(data)
 		if err != nil {
 			fmt.Printf("Error parsing response[%x]: %v\n", data, err)
 		}
@@ -149,21 +169,14 @@ func Pong(radio *rf24.R) {
 		// dump the payloads until we've gotten everything
 		var data []byte = radio.Read(64)
 		m := Message{}
-		finalBracket := bytes.LastIndex(data, []byte("\x7d"))
-		if finalBracket < 0 {
-			fmt.Printf("Could not interpret message %x", data)
-			return
-		} else {
-			data = data[0:finalBracket]
-			err := json.Unmarshal(data, &m)
-			if err != nil {
-				fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
-			}
+		err := m.Decode(data)
+		if err != nil {
+			fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
 		}
 		radio.StopListening()
 
 		m.Data = "Heck yeah!"
-		b, _ := json.Marshal(m)
+		b := m.Encode()
 
 		var size uint8 = uint8(len(b)) // I grimmace at this, but I'll live
 		if size > 64 {
