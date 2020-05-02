@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	// "github.com/cessien/cubbybot/gui"
 	rf24 "github.com/cessien/gorf24"
-	//"github.com/cessien/cubbybot/gui"
 )
 
 type Message struct {
@@ -20,10 +21,13 @@ type Message struct {
 
 const CE_PIN uint16 = 22      // RPi GPIO 22
 const CS_PIN uint16 = 8       // RPi CE0 CSN, GPIO 08
-const SPI_SPEED_HZ uint32 = 4 // 125Mhz
+const SPI_SPEED_HZ uint32 = 4 // 64Mhz
+
+func initGUI() {
+	// gui.InitializeHome()
+}
 
 func main() {
-	//gui.InitializeHome()
 	var role string = "pong_back"
 	reader := bufio.NewReader(os.Stdin)
 
@@ -64,8 +68,6 @@ func main() {
 		radio.OpenWritingPipe(pipes[1])
 		radio.OpenReadingPipe(1, pipes[0])
 	}
-
-	//radio.SetChannel(1)
 
 	radio.StartListening()
 
@@ -146,11 +148,17 @@ func Pong(radio *rf24.R) {
 	if radio.Available() {
 		// dump the payloads until we've gotten everything
 		var data []byte = radio.Read(127)
-		//data = bytes.Trim(data, "\x00")
 		m := Message{}
-		err := json.Unmarshal(data, &m)
-		if err != nil {
-			fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
+		finalBracket := bytes.LastIndex(data, []byte("\x7d"))
+		if finalBracket < 0 {
+			fmt.Printf("Could not interpret message %x", data)
+			return
+		} else {
+			data = data[0:finalBracket]
+			err := json.Unmarshal(data, &m)
+			if err != nil {
+				fmt.Printf("Error parsing recieved [%x][%s]: %v\n", data, string(data), err)
+			}
 		}
 		radio.StopListening()
 
@@ -161,14 +169,14 @@ func Pong(radio *rf24.R) {
 		if size > 127 {
 			panic(fmt.Errorf("%x is longer than 127 bytes (%d). Cannot send", b, size))
 		}
-		radio.Write(b, size)
+		radio.Write(b, 127)
 
 		// now, resume listening so we can catch the next packets
 		radio.StartListening()
 
 		// spew it
 		fmt.Printf("Got payload[%s] %s\n", m.Type, m.Data)
-
-		time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 	}
+
+	time.Sleep(925 * time.Millisecond) // delay after payload responded to, minimize RPi CPU time
 }
