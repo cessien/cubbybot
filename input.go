@@ -104,6 +104,6 @@ func controllerRoutine() {
 			joysticks.RightY = reading4.Raw
 		}
 
-		fmt.Printf("left: {%d,%d}, right: {%d,%d}\n", joysticks.LeftX, joysticks.LeftY, joysticks.RightX, joysticks.RightY)
+		// fmt.Printf("left: {%d,%d}, right: {%d,%d}\n", joysticks.LeftX, joysticks.LeftY, joysticks.RightX, joysticks.RightY)
 	}
 }
