@@ -9,7 +9,7 @@ import (
 var (
 	radioEnabled      = flag.Bool("radio", false, "enable radio subsystem")
 	controllerEnabled = flag.Bool("controller", false, "enable controller subsystem")
-	guiEnabled        = flag.Bool("gui", true, "enable gui subsystem")
+	guiEnabled        = flag.Bool("gui", false, "enable gui subsystem")
 )
 
 func main() {
